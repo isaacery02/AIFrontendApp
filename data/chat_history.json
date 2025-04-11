@@ -1,54 +1,97 @@
 [
     [
+        "just wanted a text to speech service",
+        "(Input Spoken - No AI Response)",
+        "20250411_145848"
+    ],
+    [
+        "another test about nonsense",
+        "Of course! If you have any specific questions or need assistance with anything, feel free to ask. I'm here to help, even with silly or nonsensical inquiries. \ud83d\ude0a",
+        "20250411_145541"
+    ],
+    [
+        "testing again",
+        "(Input Spoken Only)",
+        null
+    ],
+    [
+        "Just read this aloud",
+        "(Input Spoken Only)",
+        null
+    ],
+    [
+        "read this: hello hello",
+        "Hello! How can I assist you today?",
+        "20250411_144610"
+    ],
+    [
+        "read a small poem",
+        "Certainly! Here is a short poem for you:\n\nThe sun sets low, the sky aglow,  \nWhispers soft in twilight's flow.  \nStars emerge, in night's embrace,  \nPainting dreams with gentle grace.  \n\nIf there's anything else you'd like, feel free to ask!",
+        "20250411_144313"
+    ],
+    [
         "I cant see the history as i type?",
-        "It sounds like you might be experiencing an issue with the interface or platform you're using. Could you specify what application or platform you're using where you can't see the history as you type? This way, I can provide more targeted suggestions to help you resolve the issue."
+        "It sounds like you might be experiencing an issue with the interface or platform you're using. Could you specify what application or platform you're using where you can't see the history as you type? This way, I can provide more targeted suggestions to help you resolve the issue.",
+        null
     ],
     [
         "this is pretty amazing",
-        "I'm glad you think so! How can I assist you today?"
+        "I'm glad you think so! How can I assist you today?",
+        null
     ],
     [
         "this is fun",
-        "I'm glad you're having fun! If there's anything specific you'd like to talk about or any activity you'd like to do, just let me know."
+        "I'm glad you're having fun! If there's anything specific you'd like to talk about or any activity you'd like to do, just let me know.",
+        null
     ],
     [
         "I only want you to read what I am typing",
-        "Of course! Please feel free to share whatever you would like, and I'll be here to listen."
+        "Of course! Please feel free to share whatever you would like, and I'll be here to listen.",
+        null
     ],
     [
         "Hello there",
-        "Hello! How can I assist you today?"
+        "Hello! How can I assist you today?",
+        null
     ],
     [
         "testing",
-        "Hello! How can I assist you today?"
+        "Hello! How can I assist you today?",
+        null
     ],
     [
         "how do i ensure that your answers are as quick as possible",
-        "To ensure that my responses are as quick as possible, you can follow these tips:\n\n1. **Be Specific**: Ask clear and concise questions. The more specific you are, the easier it is for me to understand and provide a quick response.\n\n2. **Ask One Question at a Time**: If you have multiple questions, ask them one at a time to allow for quicker and more focused responses.\n\n3. **Provide Context**: If your question is about something specific, such as a topic or a past interaction, providing context can help me generate a faster and more accurate response.\n\n4. **Use Simple Language**: Avoid complex sentence structures or ambiguous terms that might require clarification or interpretation.\n\n5. **Avoid Overloading**: Avoid asking too many questions at once or providing overly detailed information that might slow down the response time.\n\nBy following these guidelines, you'll help me deliver the quickest and most accurate answers possible."
+        "To ensure that my responses are as quick as possible, you can follow these tips:\n\n1. **Be Specific**: Ask clear and concise questions. The more specific you are, the easier it is for me to understand and provide a quick response.\n\n2. **Ask One Question at a Time**: If you have multiple questions, ask them one at a time to allow for quicker and more focused responses.\n\n3. **Provide Context**: If your question is about something specific, such as a topic or a past interaction, providing context can help me generate a faster and more accurate response.\n\n4. **Use Simple Language**: Avoid complex sentence structures or ambiguous terms that might require clarification or interpretation.\n\n5. **Avoid Overloading**: Avoid asking too many questions at once or providing overly detailed information that might slow down the response time.\n\nBy following these guidelines, you'll help me deliver the quickest and most accurate answers possible.",
+        null
     ],
     [
         "are you the mini model?",
-        "I am based on a larger language model, not the mini model. My capabilities are derived from a more comprehensive version, allowing me to assist with a wide range of queries. If you have any questions or need assistance, feel free to ask!"
+        "I am based on a larger language model, not the mini model. My capabilities are derived from a more comprehensive version, allowing me to assist with a wide range of queries. If you have any questions or need assistance, feel free to ask!",
+        null
     ],
     [
         "what GPT model are you",
-        "I am based on OpenAI's GPT-4 model, which is designed to understand and generate human-like text based on the input I receive. How can I assist you today?"
+        "I am based on OpenAI's GPT-4 model, which is designed to understand and generate human-like text based on the input I receive. How can I assist you today?",
+        null
     ],
     [
         "how to deal with toddlers who are misbehaving because of a new baby",
-        "Dealing with a toddler's misbehavior after the arrival of a new baby can be challenging, as they may feel insecure or jealous about the changes in the family dynamic. Here are some strategies to help you manage this transition:\n\n### 1. **Acknowledge Their Feelings:**\n   - Validate your toddler's emotions by acknowledging that it\u2019s okay to feel upset, jealous, or confused. Use phrases like, \u201cI see you\u2019re feeling sad about the baby\u201d or \u201cIt\u2019s normal to feel upset when things change.\u201d\n\n### 2. **Maintain Routines:**\n   - Try to keep your toddler\u2019s routine as consistent as possible. Predictability can be comforting during a time of change.\n\n### 3. **Involve Them:**\n   - Include your toddler in caring for the new baby. Assign them small tasks, like bringing diapers or singing to the baby. This can help them feel included and important.\n\n### 4. **One-on-One Time:**\n   - Set aside special time just for your toddler, where they have your undivided attention. Engaging in activities they enjoy can help reinforce your bond and alleviate feelings of jealousy.\n\n### 5. **Positive Reinforcement:**\n   - Offer praise and positive reinforcement for good behavior. Recognize and reward moments when they exhibit kindness or patience.\n\n### 6. **Model Calm Behavior:**\n   - Stay calm and composed even when your toddler misbehaves. Modeling self-control can help them learn to cope with their feelings better.\n\n### 7. **Redirect Their Energy:**\n   - When misbehavior occurs, redirect your toddler\u2019s energy towards more appropriate activities, such as drawing, playing with toys, or reading books.\n\n### 8. **Set Clear Boundaries:**\n   - Establish clear and consistent rules for behavior. Make sure your toddler understands what is acceptable and what is not, and enforce consequences gently.\n\n### 9. **Speak to Them About the Baby:**\n   - Use age-appropriate language to explain the changes. Talk about the excitement of having a new baby and discuss how they can help.\n\n### 10. **Encourage Expression:**\n   - Provide outlets for expressing feelings. Simple art projects or play can help them articulate their emotions non-verbally.\n\n### 11. **Practice Patience:**\n   - Understand that this is a big life change for your toddler. It may take time for them to adjust, and occasional misbehavior is normal.\n\n### 12. **Seek Help if Needed:**\n   - If your toddler's behavior continues to be challenging, consider consulting a pediatrician or child psychologist for additional support and strategies.\n\nBy incorporating these strategies, you can help your toddler adjust to the new family dynamic while managing their behavior effectively. Remember, it\u2019s a process, and it\u2019s okay to seek support along the way."
+        "Dealing with a toddler's misbehavior after the arrival of a new baby can be challenging, as they may feel insecure or jealous about the changes in the family dynamic. Here are some strategies to help you manage this transition:\n\n### 1. **Acknowledge Their Feelings:**\n   - Validate your toddler's emotions by acknowledging that it\u2019s okay to feel upset, jealous, or confused. Use phrases like, \u201cI see you\u2019re feeling sad about the baby\u201d or \u201cIt\u2019s normal to feel upset when things change.\u201d\n\n### 2. **Maintain Routines:**\n   - Try to keep your toddler\u2019s routine as consistent as possible. Predictability can be comforting during a time of change.\n\n### 3. **Involve Them:**\n   - Include your toddler in caring for the new baby. Assign them small tasks, like bringing diapers or singing to the baby. This can help them feel included and important.\n\n### 4. **One-on-One Time:**\n   - Set aside special time just for your toddler, where they have your undivided attention. Engaging in activities they enjoy can help reinforce your bond and alleviate feelings of jealousy.\n\n### 5. **Positive Reinforcement:**\n   - Offer praise and positive reinforcement for good behavior. Recognize and reward moments when they exhibit kindness or patience.\n\n### 6. **Model Calm Behavior:**\n   - Stay calm and composed even when your toddler misbehaves. Modeling self-control can help them learn to cope with their feelings better.\n\n### 7. **Redirect Their Energy:**\n   - When misbehavior occurs, redirect your toddler\u2019s energy towards more appropriate activities, such as drawing, playing with toys, or reading books.\n\n### 8. **Set Clear Boundaries:**\n   - Establish clear and consistent rules for behavior. Make sure your toddler understands what is acceptable and what is not, and enforce consequences gently.\n\n### 9. **Speak to Them About the Baby:**\n   - Use age-appropriate language to explain the changes. Talk about the excitement of having a new baby and discuss how they can help.\n\n### 10. **Encourage Expression:**\n   - Provide outlets for expressing feelings. Simple art projects or play can help them articulate their emotions non-verbally.\n\n### 11. **Practice Patience:**\n   - Understand that this is a big life change for your toddler. It may take time for them to adjust, and occasional misbehavior is normal.\n\n### 12. **Seek Help if Needed:**\n   - If your toddler's behavior continues to be challenging, consider consulting a pediatrician or child psychologist for additional support and strategies.\n\nBy incorporating these strategies, you can help your toddler adjust to the new family dynamic while managing their behavior effectively. Remember, it\u2019s a process, and it\u2019s okay to seek support along the way.",
+        null
     ],
     [
         "testing testing",
-        "Testing successful! How can I assist you today?"
+        "Testing successful! How can I assist you today?",
+        null
     ],
     [
         "hello hello",
-        "Hello! How can I assist you today?"
+        "Hello! How can I assist you today?",
+        null
     ],
     [
         "testing",
-        "It looks like you're testing the system. How can I assist you today?"
+        "It looks like you're testing the system. How can I assist you today?",
+        null
     ]
 ]
