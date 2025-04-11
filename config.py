@@ -34,7 +34,7 @@ HISTORY_FILE = APP_BASE_DATA_DIR / "chat_history.json"
 
 # --- Other Constants ---
 MAX_RECORDINGS = 10
-DEFAULT_CHAT_MODEL = os.getenv("DEFAULT_CHAT_MODEL", "gpt-4o-mini")
+DEFAULT_CHAT_MODEL = os.getenv("DEFAULT_CHAT_MODEL", "gpt-4o")
 DEFAULT_TTS_MODEL = "tts-1"
 DEFAULT_TTS_VOICE = "alloy"
 
