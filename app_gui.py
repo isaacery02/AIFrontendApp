@@ -22,138 +22,144 @@ class ChatApp(customtkinter.CTk):
     def __init__(self, player: AudioPlayer):
         super().__init__()
 
-        self.player = player
+        # --- Set Appearance Mode ONCE at startup ---
+        # Assuming this should be here from previous steps
+        customtkinter.set_appearance_mode("System")
+        # ------------------------------------------
+
+        self.player = player # Assign only ONCE
         self.title("AI Chat & Speech")
         self.geometry("850x550")
 
-        customtkinter.set_appearance_mode("System")
         customtkinter.set_default_color_theme("blue")
 
+        # --- Add threading event for shutdown signalling ---
+        self._is_shutting_down = threading.Event()
         # --- Add instance var for settings window ---
         self.settings_window = None
         # --- Add instance var for storing loaded API key for display ---
-        self.current_api_key_display = "" # Store loaded key for settings display
+        self.current_api_key_display = ""
+        # --- Add instance var for selected history timestamp ---
+        self.selected_history_timestamp = None # Initialize here
 
-        # Configure main window grid (Unchanged)
+        # Configure main window grid
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        # Create PanedWindow (Unchanged)
+        # Create PanedWindow
         self.paned_window = tk.PanedWindow(
             self, orient=tk.HORIZONTAL, sashrelief=tk.RAISED,
-            sashwidth=6, bg="gray25"
+            sashwidth=6, bg="gray25" # Keep colored sash for visibility for now
         )
         self.paned_window.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
-        # Pane 1: History Section (Unchanged)
-        self.history_container = tk.Frame(self.paned_window)
-        self.history_frame = customtkinter.CTkScrollableFrame(
-            self.history_container, label_text="History", width=180
-        )
-        self.history_frame.grid_columnconfigure(0, weight=1)
-        self.history_frame.pack(fill="both", expand=True)
-        self.paned_window.add(self.history_container, stretch="never")
+        # --- Pane 1: History Section ---
+        self.history_container = tk.Frame(self.paned_window) # REMOVED bg=...
+        self.paned_window.add(self.history_container, stretch="never", width=180)
+        self.history_container.grid_rowconfigure(0, weight=0) # Title Label
+        self.history_container.grid_rowconfigure(1, weight=1) # Scrollable Frame
+        self.history_container.grid_columnconfigure(0, weight=1)
 
-        # Pane 2: Main Content Area (Unchanged)
-        self.main_content_container = tk.Frame(self.paned_window)
+        self.history_title_label = customtkinter.CTkLabel(
+            master=self.history_container, text="History",
+            font=customtkinter.CTkFont(weight="bold")
+        )
+        self.history_title_label.grid(row=0, column=0, padx=10, pady=(5, 5), sticky="ew")
+
+        self.history_frame = customtkinter.CTkScrollableFrame(
+            master=self.history_container, fg_color="transparent"
+        )
+        self.history_frame.grid(row=1, column=0, padx=5, pady=(0, 5), sticky="nsew")
+        self.history_frame.grid_columnconfigure(0, weight=1)
+
+        # --- Pane 2: Main Content Area ---
+        self.main_content_container = tk.Frame(self.paned_window) # REMOVED bg=...
         self.main_content_frame = customtkinter.CTkFrame(
             self.main_content_container, fg_color="transparent"
         )
         self.main_content_frame.pack(fill="both", expand=True)
         self.paned_window.add(self.main_content_container, stretch="always")
 
-        # Configure Grid Layout INSIDE main_content_frame (Unchanged)
+        # --- Configure Grid Layout *INSIDE* main_content_frame ---
+        # Correct row configuration: 0=Input, 1=Output, 2=ButtonFrame, 3=Status
         self.main_content_frame.grid_columnconfigure(0, weight=1)
-        self.main_content_frame.grid_rowconfigure(0, weight=1) # Input
-        self.main_content_frame.grid_rowconfigure(1, weight=3) # Output
-        self.main_content_frame.grid_rowconfigure(2, weight=0) # Button Frame
-        self.main_content_frame.grid_rowconfigure(3, weight=0) # Status
+        self.main_content_frame.grid_rowconfigure(0, weight=1) # Input row
+        self.main_content_frame.grid_rowconfigure(1, weight=3) # Output row
+        self.main_content_frame.grid_rowconfigure(2, weight=0) # Button frame row
+        self.main_content_frame.grid_rowconfigure(3, weight=0) # Status label row
 
-        # Widgets INSIDE main_content_frame (Unchanged: Input, Output)
+        # --- REMOVE Speak Input Checkbox from here ---
+
+        # --- Widgets INSIDE main_content_frame ---
+        # Correct row numbers
+
+        # Input Textbox (Row 0)
         self.input_textbox = customtkinter.CTkTextbox(self.main_content_frame, height=100)
         self.input_textbox.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="nsew")
         self.input_textbox.insert("0.0", "Enter your text here...")
         self.input_textbox.bind("<Control-Return>", self.handle_ctrl_enter)
 
+        # Output Textbox (Row 1)
         self.output_textbox = customtkinter.CTkTextbox(self.main_content_frame, state="disabled")
         self.output_textbox.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
 
-            # Button Frame (Parent is main_content_frame)
+        # Button Frame (Row 2)
         self.button_frame = customtkinter.CTkFrame(self.main_content_frame, fg_color="transparent")
-        self.button_frame.grid(row=2, column=0, padx=10, pady=(5,0), sticky="ew") # Row 2 in main_content_frame
-
-        # Configure 2 columns, 3 rows needed now
+        self.button_frame.grid(row=2, column=0, padx=10, pady=(5,0), sticky="ew")
+        # Configure button_frame grid (3 rows needed)
         self.button_frame.grid_columnconfigure(0, weight=1)
         self.button_frame.grid_columnconfigure(1, weight=1)
-        self.button_frame.grid_rowconfigure(0, weight=0) # Row for Gen/Stop Buttons
-        self.button_frame.grid_rowconfigure(1, weight=0) # Row for Play History/Settings Buttons
-        self.button_frame.grid_rowconfigure(2, weight=0) # Row for Checkboxes
-        # Removed configure for row 3
+        self.button_frame.grid_rowconfigure(0, weight=0) # Gen/Stop
+        self.button_frame.grid_rowconfigure(1, weight=0) # Play Hist/Settings
+        self.button_frame.grid_rowconfigure(2, weight=0) # Checkboxes
 
-        # Generate / Stop Buttons (Row 0 - Unchanged)
+        # Buttons (Row 0 and 1 - Correct placement)
         self.submit_button = customtkinter.CTkButton(self.button_frame, text="Generate & Speak", command=self.start_processing_thread)
         self.submit_button.grid(row=0, column=0, padx=(0,5), pady=(2,2), sticky="ew")
         self.stop_button = customtkinter.CTkButton(self.button_frame, text="Stop Playback", command=self.stop_playback, state="disabled", fg_color="firebrick", hover_color="darkred")
         self.stop_button.grid(row=0, column=1, padx=(5,0), pady=(2,2), sticky="ew")
-
-        # Play History Button (Row 1, Col 0)
-        self.play_history_button = customtkinter.CTkButton(
-            self.button_frame,
-            text="Play Selected Audio",
-            command=self.play_selected_history,
-            state="disabled"
-        )
-        # Update Grid: Place in col 0, remove columnspan
+        self.play_history_button = customtkinter.CTkButton(self.button_frame, text="Play Selected Audio", command=self.play_selected_history, state="disabled")
         self.play_history_button.grid(row=1, column=0, padx=(0,5), pady=(2,2), sticky="ew")
-
-        # Settings Button (Row 1, Col 1)
-        self.settings_button = customtkinter.CTkButton(
-            self.button_frame,
-            text="Settings",
-            command=self.open_settings_window
-        )
-        # Update Grid: Place in col 1, remove columnspan
+        self.settings_button = customtkinter.CTkButton(self.button_frame, text="Settings", command=self.open_settings_window)
         self.settings_button.grid(row=1, column=1, padx=(5,0), pady=(2,2), sticky="ew")
 
-        # Checkboxes (Row 2)
+        # Checkboxes (Row 2 - Correct placement within button_frame)
         self.tts_enabled = True
         self.tts_checkbox = customtkinter.CTkCheckBox(self.button_frame, text="Enable Speech Output", command=self.toggle_tts)
-        self.tts_checkbox.grid(row=2, column=0, padx=(5,10), pady=(5,5), sticky="w") # Changed to row 2, added top pady
+        self.tts_checkbox.grid(row=2, column=0, padx=(5,10), pady=(5,5), sticky="w")
         self.tts_checkbox.select()
 
-        self.speak_input_enabled = False
-        self.speak_input_checkbox = customtkinter.CTkCheckBox(self.button_frame, text="Speak My Input", command=self.toggle_speak_input)
-        self.speak_input_checkbox.grid(row=2, column=1, padx=(10,5), pady=(5,5), sticky="w") # Changed to row 2, added top pady
-        self.speak_input_checkbox.deselect()
+        self.speak_input_enabled = False # Define state variable
+        self.speak_input_checkbox = customtkinter.CTkCheckBox( # Create it here
+            self.button_frame, # Parent is button_frame
+            text="Speak My Input",
+            command=self.toggle_speak_input
+        )
+        self.speak_input_checkbox.grid(row=2, column=1, padx=(10,5), pady=(5,5), sticky="w") # Grid it here
+        self.speak_input_checkbox.deselect() # Default OFF
 
-        # Status Label (Parent main_content_frame - Row index unchanged relative to main frame)
+        # Status Label (Row 3 - Correct placement, remove duplicate definition)
         self.status_label = customtkinter.CTkLabel(self.main_content_frame, text="Status: Ready", anchor="w")
         self.status_label.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew")
 
-        # Status Label (Parent main_content_frame - Unchanged)
-        self.status_label = customtkinter.CTkLabel(self.main_content_frame, text="Status: Ready", anchor="w")
-        self.status_label.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew")
-
-        # --- Setup for processing ---
+        # --- Setup for processing --- (Unchanged)
         self.responses_dir = config.RESPONSES_DIR
         self.max_recordings = config.MAX_RECORDINGS
         self.processing_thread = None
         self.is_playing = False
-        self.history_file = config.HISTORY_FILE # Needed for saving history
-        self.user_settings_file = config.APP_BASE_DATA_DIR / "user_settings.json" # Define settings file path
+        self.history_file = config.HISTORY_FILE
+        self.user_settings_file = config.APP_BASE_DATA_DIR / "user_settings.json"
 
-        # --- Load Persistent Data ---
-        # Load user settings (this now just determines the mode, doesn't apply it yet)
+        # --- Load Persistent Data --- (Unchanged)
         self.load_user_settings()
-        # Load history uses history_manager function directly
         self.history = load_history(self.history_file)
         self.update_history_display()
 
-        # --- Apply Initial Theme ---
-        # Apply the theme AFTER all widgets are initialized
+        # --- Apply Initial Theme --- (Unchanged)
+        # Use self.current_appearance_mode which was set by load_user_settings
         theme_manager.apply_theme(self, self.current_appearance_mode)
 
-        # --- Set closing protocol ---
+        # --- Set closing protocol --- (Unchanged)
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def load_user_settings(self):
@@ -371,16 +377,31 @@ class ChatApp(customtkinter.CTk):
 
     # --- Ensure on_closing method exists from previous steps ---
     def on_closing(self):
-        """Handles main window closing event."""
+        """Handles window closing event."""
         print("Closing application...")
-        # Stop playback if active
+        # --- Set shutdown flag FIRST ---
+        self._is_shutting_down.set()
+        # -------------------------------
+
+        # Stop playback if active (player might check flag soon)
         if self.is_playing:
+             print("Stopping active playback...")
              self.player.stop()
+             self.is_playing = False # Also clear flag here
+
+        # Optional: Wait briefly for threads to potentially notice the flag
+        # time.sleep(0.2) # Small delay might help, but joining is better if needed
+
         # Save history
-        save_history(self.history_file, self.history) # Use manager
+        print("Saving history...")
+        save_history(self.history_file, self.history)
+
         # Quit player
-        self.player.quit() # Use player method
-        # Destroy window
+        print("Quitting pygame mixer...")
+        self.player.quit()
+
+        # Destroy window (LAST)
+        print("Destroying main window...")
         self.destroy()
 
     # --- Make sure load_history method exists or was replaced by direct call ---
@@ -405,22 +426,31 @@ class ChatApp(customtkinter.CTk):
     # --- GUI Update Methods ---
     def update_status(self, message):
         """Safely updates the status label from any thread."""
-        # Ensure this runs in the main thread if called from background
+        def _update():
+            # Check if the widget still exists before configuring
+            if hasattr(self, 'status_label') and self.status_label.winfo_exists():
+                self.status_label.configure(text=f"Status: {message}")
+            else:
+                print(f"DEBUG: Status label no longer exists, skipping update: {message}")
+
+        # Ensure this runs in the main thread
         if threading.current_thread() is not threading.main_thread():
-             # If called from background, schedule it
-             self.after(0, lambda: self.status_label.configure(text=f"Status: {message}"))
+            self.after(0, _update)
         else:
-             # If called from main thread, update directly
-             self.status_label.configure(text=f"Status: {message}")
+            _update() # Run directly if already in main thread
 
 
     def update_output_textbox(self, text):
         """Safely updates the output textbox from any thread."""
         def _update():
-            self.output_textbox.configure(state="normal")
-            self.output_textbox.delete("0.0", "end")
-            self.output_textbox.insert("0.0", text or "")
-            self.output_textbox.configure(state="disabled")
+             # Check if the widget still exists before configuring
+            if hasattr(self, 'output_textbox') and self.output_textbox.winfo_exists():
+                self.output_textbox.configure(state="normal")
+                self.output_textbox.delete("0.0", "end")
+                self.output_textbox.insert("0.0", text or "")
+                self.output_textbox.configure(state="disabled")
+            else:
+                 print("DEBUG: Output textbox no longer exists, skipping update.")
 
         if threading.current_thread() is not threading.main_thread():
             self.after(0, _update)
@@ -428,30 +458,49 @@ class ChatApp(customtkinter.CTk):
             _update()
 
     def set_ui_state(self, processing: bool):
-        """Enable/disable UI elements based on processing state."""
-        submit_state = "disabled" if processing else "normal"
-        input_state = "disabled" if processing else "normal"
+        """Safely enable/disable UI elements based on processing state."""
+        def _update():
+            submit_state = "disabled" if processing else "normal"
+            input_state = "disabled" if processing else "normal"
 
-        self.submit_button.configure(state=submit_state)
-        self.input_textbox.configure(state=input_state)
+            # Check each widget before configuring
+            if hasattr(self, 'submit_button') and self.submit_button.winfo_exists():
+                self.submit_button.configure(state=submit_state)
+            if hasattr(self, 'input_textbox') and self.input_textbox.winfo_exists():
+                self.input_textbox.configure(state=input_state)
+
+        if threading.current_thread() is not threading.main_thread():
+             self.after(0, _update)
+        else:
+             _update()
+
 
     def set_stop_button_state(self, enabled: bool):
         """Safely enable/disable the stop button."""
-        state = "normal" if enabled else "disabled"
+        def _update():
+            state = "normal" if enabled else "disabled"
+            # Check if the widget still exists
+            if hasattr(self, 'stop_button') and self.stop_button.winfo_exists():
+                self.stop_button.configure(state=state)
+            else:
+                 print("DEBUG: Stop button no longer exists, skipping state change.")
+
         if threading.current_thread() is not threading.main_thread():
-             self.after(0, lambda: self.stop_button.configure(state=state))
+             self.after(0, _update)
         else:
-             self.stop_button.configure(state=state)
+             _update()
 
 
     # --- History Methods ---
     def update_history_display(self):
-        """Clears and redraws the history frame."""
+        """Clears and redraws the history frame, checking existence."""
+        # Check if frame itself exists first
+        if not hasattr(self, 'history_frame') or not self.history_frame.winfo_exists():
+             print("DEBUG: History frame no longer exists, skipping display update.")
+             return
+
         for widget in self.history_frame.winfo_children():
             widget.destroy()
-        if not isinstance(self.history, list):
-             print("Warning: History data is not a list. Resetting history.")
-             self.history = []
 
         for i, item in enumerate(self.history):
              # Handle both old (2-element) and new (3-element) history formats
@@ -538,25 +587,28 @@ class ChatApp(customtkinter.CTk):
         playback_thread.start()
 
     def _execute_playback_and_reenable(self, audio_path_str: str, status_playing: str):
-        """Wrapper executed in thread: plays audio, then re-enables history button if needed."""
+        """Wrapper executed in thread: plays audio, then safely re-enables history button."""
         playback_completed_naturally = False
         try:
             playback_completed_naturally = self._play_audio_blocking(audio_path_str, status_playing)
         finally:
-            # This block runs even if playback failed or was stopped
-            # Re-enable the play history button only if the timestamp still matches
-            # (prevents race condition if user selects another item while playing)
-            current_selected_ts = self.selected_history_timestamp # Read volatile var once
-            if current_selected_ts and (config.RESPONSES_DIR / f"response_{current_selected_ts}.mp3").exists():
-                 self.after(0, lambda: self.play_history_button.configure(state="normal"))
-            else: # File deleted or selection cleared while playing
-                 self.after(0, lambda: self.play_history_button.configure(state="disabled"))
+            # Check if button still exists before configuring
+            def _safe_reenable_play_button():
+                 if not hasattr(self, 'play_history_button') or not self.play_history_button.winfo_exists():
+                      print("DEBUG: Play history button no longer exists, skipping re-enable.")
+                      return
 
-            # Re-enable main generate button if it was disabled
-            # self.after(0, lambda: self.set_ui_state(processing=False))
+                 current_selected_ts = self.selected_history_timestamp
+                 new_state = "disabled" # Default to disabled
+                 if current_selected_ts and (config.RESPONSES_DIR / f"response_{current_selected_ts}.mp3").exists():
+                      new_state = "normal"
+                 self.play_history_button.configure(state=new_state)
 
-            # Set final status if needed
-            current_status = self.status_label.cget("text")
+            self.after(0, _safe_reenable_play_button)
+
+            # Set final status if needed (update_status already has checks)
+            current_status = self.status_label.cget("text") # Check status from main thread? Risky.
+            # Better to just call update_status which handles checks safely
             if "Error" not in current_status and "stopped" not in current_status and "finished" not in current_status:
                 self.after(100, lambda: self.update_status("Ready"))
 
@@ -814,6 +866,17 @@ class ChatApp(customtkinter.CTk):
         print(f"Speak Input is now {status}")
         # Optional: Update status bar if desired
         # self.update_status(f"Speak Input {status}")
+
+    def _safe_reenable_ui_after_thread(self):
+         """Safely re-enables UI after background thread finishes, respecting shutdown flag."""
+         if self._is_shutting_down.is_set(): return # Don't re-enable if closing
+         # Check if main window still exists just in case
+         if not self.winfo_exists(): return
+
+         print("DEBUG: Background thread finished cleanly. Re-enabling UI.")
+         self.set_ui_state(processing=False) # Calls safe method
+         if self.is_playing: self.is_playing = False # Reset flag if needed
+         self.set_stop_button_state(enabled=False) # Calls safe method
     
     # --- Closing Method ---
     def on_closing(self):
