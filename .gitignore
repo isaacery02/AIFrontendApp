@@ -16,3 +16,9 @@ settings.txt
 
 # Responses
 Responses/
+
+# dist
+dist/
+
+# build
+build/
