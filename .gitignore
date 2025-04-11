@@ -15,8 +15,7 @@ __pycache__/
 settings.txt
 
 # Responses
-responses/
-user_settings.json
+data/
 
 # dist
 dist/
