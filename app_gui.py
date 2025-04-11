@@ -29,100 +29,108 @@ class ChatApp(customtkinter.CTk):
         customtkinter.set_default_color_theme("blue")
 
         # --- Configure main window's grid for the PanedWindow ---
-        # The main window (self) will now hold only the PanedWindow in a single cell
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
         # --- Create the PanedWindow ---
-        # This standard Tkinter widget will manage the two main sections
         self.paned_window = tk.PanedWindow(
-            self,                       # Parent is the main window
-            orient=tk.HORIZONTAL,       # Divide horizontally (left/right panes)
-            sashrelief=tk.RAISED,       # Style for the draggable divider
-            sashwidth=6,                # Thickness of the divider (adjust as needed)
-            bg="gray25"                 # Background color for the sash area (adjust to match theme)
-            # showhandle=True           # Optional: adds visual handles to the sash
+            self, orient=tk.HORIZONTAL, sashrelief=tk.RAISED,
+            sashwidth=6, bg="gray25"
         )
-        # Place the PanedWindow using grid, making it fill the main window
         self.paned_window.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
         # --- Pane 1: History Section ---
-        # Create a standard tk Frame as container first
+        # Using intermediate tk.Frame container
         self.history_container = tk.Frame(self.paned_window)
-        # Then place CustomTkinter widget inside this container
         self.history_frame = customtkinter.CTkScrollableFrame(
-            self.history_container,     # Parent is the container Frame
-            label_text="History",
-            width=180
+            self.history_container, label_text="History", width=180
         )
-        # Configure the history frame grid
-        self.history_frame.grid_columnconfigure(0, weight=1) # Allow buttons inside to expand width
-        # Pack the history frame into its container (fill the container)
+        self.history_frame.grid_columnconfigure(0, weight=1)
         self.history_frame.pack(fill="both", expand=True)
-        # Add the container to the PanedWindow
         self.paned_window.add(self.history_container, stretch="never")
 
         # --- Pane 2: Main Content Area ---
-        # Create a standard tk Frame as container first
+        # Using intermediate tk.Frame container
         self.main_content_container = tk.Frame(self.paned_window)
-        # Then place CustomTkinter widget inside this container
         self.main_content_frame = customtkinter.CTkFrame(
-            self.main_content_container, # Parent is the container Frame
-            fg_color="transparent"      # Make its background transparent
+            self.main_content_container, fg_color="transparent"
         )
-        # Pack the main content frame into its container
         self.main_content_frame.pack(fill="both", expand=True)
-        # Add the container to the PanedWindow
         self.paned_window.add(self.main_content_container, stretch="always")
 
         # --- Configure Grid Layout *INSIDE* main_content_frame ---
-        # This frame now manages the layout for the input/output/buttons/status
         self.main_content_frame.grid_columnconfigure(0, weight=1) # Single column
-        self.main_content_frame.grid_rowconfigure(0, weight=1) # Input row weight
-        self.main_content_frame.grid_rowconfigure(1, weight=3) # Output row weight (larger)
-        self.main_content_frame.grid_rowconfigure(2, weight=0) # Button frame row weight
-        self.main_content_frame.grid_rowconfigure(3, weight=0) # Status label row weight
+        # Remove row 0 config for checkbox - rows are now: 0=Input, 1=Output, 2=ButtonFrame, 3=Status
+        # self.main_content_frame.grid_rowconfigure(0, weight=0) # Speak Input Checkbox row <--- REMOVE
+        self.main_content_frame.grid_rowconfigure(0, weight=1) # Input row weight (was 1)
+        self.main_content_frame.grid_rowconfigure(1, weight=3) # Output row weight (was 2, larger)
+        self.main_content_frame.grid_rowconfigure(2, weight=0) # Button frame row weight (was 3)
+        self.main_content_frame.grid_rowconfigure(3, weight=0) # Status label row weight (was 4)
+
+        # --- REMOVE Speak Input Checkbox FROM HERE ---
+        # self.speak_input_enabled = False # Default OFF <-- MOVE this definition down
+        # self.speak_input_checkbox = customtkinter.CTkCheckBox(...) <-- MOVE creation/gridding
+        # self.speak_input_checkbox.grid(row=0, ...) <-- DELETE this grid call
+        # self.speak_input_checkbox.deselect() <-- MOVE this call down
 
         # --- Widgets INSIDE main_content_frame ---
-        # IMPORTANT: Change the parent/master of these widgets to self.main_content_frame
-        # And set column to 0
+        # Adjust row numbers back
 
-        # Input Textbox
+        # Input Textbox (Back to row 0)
         self.input_textbox = customtkinter.CTkTextbox(self.main_content_frame, height=100)
         self.input_textbox.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="nsew")
         self.input_textbox.insert("0.0", "Enter your text here...")
         self.input_textbox.bind("<Control-Return>", self.handle_ctrl_enter)
 
-        # Output Textbox
+        # Output Textbox (Back to row 1)
         self.output_textbox = customtkinter.CTkTextbox(self.main_content_frame, state="disabled")
         self.output_textbox.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
 
-        # Button Frame (Parent is main_content_frame)
+        # Button Frame (Back to row 2)
         self.button_frame = customtkinter.CTkFrame(self.main_content_frame, fg_color="transparent")
         self.button_frame.grid(row=2, column=0, padx=10, pady=(5,0), sticky="ew")
-        # Configure columns inside button_frame (no change here)
+        # Configure columns/rows inside button_frame (Unchanged)
         self.button_frame.grid_columnconfigure(0, weight=1)
         self.button_frame.grid_columnconfigure(1, weight=1)
         self.button_frame.grid_rowconfigure(0, weight=0)
         self.button_frame.grid_rowconfigure(1, weight=0)
 
-        # Buttons (Parent is button_frame - no change)
+        # Buttons (Row 0 of button_frame - Unchanged)
         self.submit_button = customtkinter.CTkButton(self.button_frame, text="Generate & Speak", command=self.start_processing_thread)
         self.submit_button.grid(row=0, column=0, padx=(0,5), pady=(5,2), sticky="ew")
         self.stop_button = customtkinter.CTkButton(self.button_frame, text="Stop Playback", command=self.stop_playback, state="disabled", fg_color="firebrick", hover_color="darkred")
         self.stop_button.grid(row=0, column=1, padx=(5,0), pady=(5,2), sticky="ew")
 
-        # TTS Checkbox (Parent is button_frame - no change)
+        # --- Checkboxes (Row 1 of button_frame) ---
+
+        # Enable Speech Output Checkbox (Row 1, Column 0)
         self.tts_enabled = True
-        self.tts_checkbox = customtkinter.CTkCheckBox(self.button_frame, text="Enable Speech Output", command=self.toggle_tts)
-        self.tts_checkbox.grid(row=1, column=0, columnspan=2, padx=5, pady=(2,5), sticky="w")
-        self.tts_checkbox.select()
+        self.tts_checkbox = customtkinter.CTkCheckBox(
+            self.button_frame, # Parent is button_frame
+            text="Enable Speech Output",
+            command=self.toggle_tts
+        )
+        # Update grid call: remove columnspan, add padx, ensure row/col correct
+        self.tts_checkbox.grid(row=1, column=0, padx=(5,10), pady=(2,5), sticky="w") # Col 0
+        self.tts_checkbox.select() # Default ON
 
-        # Status Label (Parent is main_content_frame)
+        # Speak My Input Checkbox (Row 1, Column 1) <-- MOVED HERE
+        self.speak_input_enabled = False # Define state variable
+        self.speak_input_checkbox = customtkinter.CTkCheckBox(
+            self.button_frame, # Parent is button_frame
+            text="Speak My Input",
+            command=self.toggle_speak_input
+        )
+        # Grid it in the next column
+        self.speak_input_checkbox.grid(row=1, column=1, padx=(10,5), pady=(2,5), sticky="w") # Col 1
+        self.speak_input_checkbox.deselect() # Default OFF
+        # ----------------------------------------
+
+        # Status Label (Back to row 3 of main_content_frame)
         self.status_label = customtkinter.CTkLabel(self.main_content_frame, text="Status: Ready", anchor="w")
-        self.status_label.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew")
+        self.status_label.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew") # Was row 4
 
-        # --- Setup for processing (Reference config module) ---
+        # --- Setup for processing ---
         self.responses_dir = config.RESPONSES_DIR
         self.max_recordings = config.MAX_RECORDINGS
         self.processing_thread = None
@@ -130,7 +138,7 @@ class ChatApp(customtkinter.CTk):
         self.history_file = config.HISTORY_FILE
 
         # --- Load History & Update Display ---
-        self.load_history() # Make sure this method exists or call manager directly
+        self.load_history()
         self.update_history_display()
 
         # --- Set closing protocol ---
@@ -260,118 +268,237 @@ class ChatApp(customtkinter.CTk):
             # Disable button immediately as well
             self.set_stop_button_state(enabled=False)
 
-
     def process_request_in_background(self, prompt):
-        """Runs API calls, cleanup, and playback in a background thread.
-           Displays text response ASAP, then generates and plays audio if enabled."""
-        audio_path_str = None
-        generated_text = None
-        audio_generated = False # Flag specific to audio generation success
+        """
+        Handles background processing.
+        If 'Speak Input' is checked, only generates TTS for the prompt and plays it.
+        Otherwise, gets AI response, displays it, adds to history, and optionally plays response TTS.
+        """
         client = None
+        generated_text = None # To ensure it's defined for finally block's potential use in error reporting
+        playback_completed_naturally = True # Assume true unless stopped/error
+
         try:
-            # --- Step 1: Initialize Client ---
+            # --- Initialize Client ---
+            # Needed for both input TTS and chat/response TTS
             client = OpenAI()
             if not client.api_key:
-                 raise ValueError("OpenAI API key missing.")
+                raise ValueError("OpenAI API key missing.")
 
-            # --- Step 2: Get Text Response ---
-            self.update_status("Generating AI response...")
-            generated_text = api_handler.get_chat_response(client, prompt, config.DEFAULT_CHAT_MODEL)
-            self.after(0, lambda: self.update_output_textbox(generated_text))
-
-            # --- Step 3: Add to History (if text is valid) ---
-            if generated_text and not generated_text.startswith(("(No text response", "Error:")):
-                 self.history.insert(0, (prompt, generated_text))
-                 self.after(0, self.update_history_display)
-                 # Update status differently depending on TTS setting
-                 status_msg = "Response received. Generating audio..." if self.tts_enabled else "Response received (Speech disabled)."
-                 self.update_status(status_msg)
-            else:
-                 self.update_status("Failed to get valid text response.")
-                 return
-
-            # --- Steps 4-7: TTS, Playback, Cleanup (ONLY IF ENABLED) ---
-            if self.tts_enabled:
-                # --- Step 4: Generate Speech (TTS) ---
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                output_filename = config.RESPONSES_DIR / f"response_{timestamp}.mp3"
+            # --- Path 1: Speak Input ONLY ---
+            if self.speak_input_enabled:
+                self.update_status("Generating speech for input...")
+                prompt_audio_path = None
                 try:
-                    api_handler.generate_speech(client, generated_text, output_filename, config.DEFAULT_TTS_MODEL, config.DEFAULT_TTS_VOICE)
-                    audio_path_str = str(output_filename)
-                    audio_generated = True
-                except (ConnectionError, RuntimeError, Exception) as tts_error:
-                     print(f"Error during TTS generation: {tts_error}")
-                     self.update_status(f"Error generating audio: {tts_error}")
-                     # audio_generated remains False
+                    temp_prompt_audio_path = config.APP_BASE_DATA_DIR / "prompt_audio.mp3"
+                    api_handler.generate_speech(
+                        client, prompt, temp_prompt_audio_path,
+                        config.DEFAULT_TTS_MODEL, config.DEFAULT_TTS_VOICE
+                    )
+                    prompt_audio_path = str(temp_prompt_audio_path)
+                except (ConnectionError, RuntimeError, Exception) as prompt_tts_error:
+                    print(f"Error generating speech for prompt: {prompt_tts_error}")
+                    self.update_status(f"Error generating prompt audio: {prompt_tts_error}")
+                    # Fall through to finally block to re-enable UI
 
-                # --- Step 5: Play Audio (if TTS was successful) ---
-                if audio_generated:
-                    if self.player.load(audio_path_str):
-                        self.is_playing = True
-                        self.set_stop_button_state(enabled=True) # Enable Stop button
-                        self.update_status("Playing response...")
-                        self.player.play()
+                if prompt_audio_path:
+                    # Play the prompt audio blockingly
+                    playback_completed_naturally = self._play_audio_blocking(
+                        prompt_audio_path, status_playing="Speaking input..."
+                    )
+                    try: # Clean up temp file
+                        Path(prompt_audio_path).unlink(missing_ok=True)
+                    except OSError as e:
+                        print(f"Error deleting temp prompt audio: {e}")
 
-                        while self.player.is_busy() and self.is_playing:
-                            time.sleep(0.1)
+                    # Update status based on playback outcome
+                    if playback_completed_naturally:
+                        self.update_status("Ready (Input spoken).")
+                    else: # Playback was stopped
+                        self.update_status("Ready (Input speech stopped).")
+                else:
+                     # TTS failed, update status
+                     self.update_status("Ready (Input audio generation failed).")
 
-                        # Playback finished or stopped
-                        playback_naturally_finished = False
-                        if self.is_playing: # Finished naturally
-                            print("Playback finished naturally.")
-                            self.update_status("Playback finished.")
-                            self.is_playing = False
-                            playback_naturally_finished = True
+                # IMPORTANT: Skip the rest of the AI interaction
+                return # Exit the thread function here
 
-                        # Ensure stopped and unloaded
-                        self.player.stop()
-                        self.player.unload()
+            # --- Path 2: Get AI Response and Optionally Speak Response ---
+            else: # (self.speak_input_enabled is False)
+                # --- Get Text Response ---
+                self.update_status("Generating AI response...")
+                generated_text = api_handler.get_chat_response(client, prompt, config.DEFAULT_CHAT_MODEL)
+                self.after(0, lambda: self.update_output_textbox(generated_text)) # Schedule text update ASAP
 
-                    else: # Player failed to load
-                         self.update_status("Error loading audio file for playback.")
-                         self.is_playing = False
+                # --- Add to History (if text is valid) ---
+                if generated_text and not generated_text.startswith(("(No text response", "Error:")):
+                    self.history.insert(0, (prompt, generated_text))
+                    self.after(0, self.update_history_display) # Schedule history update
+                    status_msg = "Response received. Generating audio..." if self.tts_enabled else "Response received (Speech disabled)."
+                    self.update_status(status_msg)
+                else:
+                    self.update_status("Failed to get valid text response.")
+                    return # Exit thread
 
-                    # Always ensure stop button is disabled after playback attempt
-                    self.set_stop_button_state(enabled=False)
+                # --- Generate and Play Response Speech (ONLY IF ENABLED) ---
+                if self.tts_enabled:
+                    response_audio_path = None
+                    response_audio_generated = False
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    output_filename = config.RESPONSES_DIR / f"response_{timestamp}.mp3"
+                    try:
+                        api_handler.generate_speech(client, generated_text, output_filename, config.DEFAULT_TTS_MODEL, config.DEFAULT_TTS_VOICE)
+                        response_audio_path = str(output_filename)
+                        response_audio_generated = True
+                    except (ConnectionError, RuntimeError, Exception) as response_tts_error:
+                         print(f"Error during response TTS generation: {response_tts_error}")
+                         self.update_status(f"Error generating response audio: {response_tts_error}")
 
-                    # --- Step 6: Cleanup ---
-                    file_utils.cleanup_old_recordings(config.RESPONSES_DIR, config.MAX_RECORDINGS)
+                    if response_audio_generated:
+                         playback_completed_naturally = self._play_audio_blocking(
+                             response_audio_path, status_playing="Playing response..."
+                         )
+                         # Cleanup old response recordings
+                         file_utils.cleanup_old_recordings(config.RESPONSES_DIR, config.MAX_RECORDINGS)
+                         # Update final status
+                         if playback_completed_naturally:
+                              self.update_status("Ready")
+                         # If stopped/error, status is already set
 
-                    # --- Step 7: Update Final Status ---
-                    if playback_naturally_finished:
-                         self.update_status("Ready")
-                    # If stopped/error, status already updated
+                    else: # Response audio generation failed
+                         self.update_status("Ready (Response audio generation failed).")
 
-                else: # Audio generation failed
-                     self.update_status("Ready (audio generation failed).")
-            else:
-                # --- TTS was disabled ---
-                print("TTS is disabled, skipping audio generation and playback.")
-                # Status already set after text generation
-                # We just need to ensure the UI gets enabled eventually.
-                self.update_status("Ready (Speech disabled).")
-
+                else: # Response TTS disabled
+                    print("Response TTS is disabled.")
+                    self.update_status("Ready (Speech disabled).")
 
         except (ValueError, ConnectionError, RuntimeError, Exception) as e:
+             # Catch errors from Client Init, Chat API call or other unexpected issues
              error_msg_thread = f"Error: {e}"
              print(error_msg_thread)
-             final_text = generated_text or f"Error: {e}"
+             final_text = generated_text or f"Error: {e}" # Show text if available before error
              self.after(0, lambda: self.update_output_textbox(final_text))
              self.update_status(f"Error: {e}")
-             self.is_playing = False
+             self.is_playing = False # Ensure flag is reset
 
         finally:
-            # --- Step 8: Always Re-enable UI ---
+            # --- Always Re-enable UI ---
+            # This runs regardless of which path was taken or if errors occurred
             self.after(0, lambda: self.set_ui_state(processing=False))
+            # Ensure stop button is disabled if thread ends unexpectedly or completes
             if self.is_playing: self.is_playing = False
-            self.set_stop_button_state(enabled=False) # Ensure stop is disabled
-
+            self.set_stop_button_state(enabled=False) # Schedule disable
 
     # --- Other methods like handle_ctrl_enter, load_history_item, stop_playback, on_closing remain the same ---
     # Make sure load_history exists (or that you directly use history_manager.load_history in __init__)
     def load_history(self): # Example if you kept this wrapper method
          self.history = load_history(config.HISTORY_FILE)
 
+    def _play_audio_blocking(self, audio_path_str: str, status_playing: str = "Playing audio...") -> bool:
+        """
+        Loads and plays an audio file blockingly, managing the Stop button.
+        Returns True if playback completed naturally, False otherwise (stopped or error).
+        """
+        if not audio_path_str or not self.player.initialized:
+            return False
+
+        natural_finish = False
+        try:
+            self.update_status("Loading audio...") # Direct update ok here? No, schedule.
+            self.after(0, lambda: self.update_status("Loading audio..."))
+            if not self.player.load(audio_path_str):
+                raise RuntimeError(f"Failed to load audio file: {audio_path_str}")
+
+            print(f"Playing: {audio_path_str}")
+            self.is_playing = True
+            self.set_stop_button_state(enabled=True) # Schedule enable
+            self.update_status(status_playing)      # Schedule update
+
+            self.player.play()
+
+            # Wait for playback to finish or be stopped
+            while self.player.is_busy() and self.is_playing:
+                time.sleep(0.1)
+
+            # --- Playback finished or stopped ---
+            if self.is_playing: # Finished naturally if flag wasn't cleared by stop_playback
+                print("Playback finished naturally.")
+                self.update_status("Playback finished.") # Schedule update
+                self.is_playing = False # Clear flag *after* checking
+                natural_finish = True
+            # If stopped by user, is_playing is already False, status set in stop_playback
+
+        except Exception as e:
+            error_msg = f"Error during playback: {e}"
+            print(error_msg)
+            self.update_status(error_msg) # Schedule update
+            self.is_playing = False
+        finally:
+            # Ensure mixer is stopped and unloaded
+            self.player.stop()
+            self.player.unload()
+            # Ensure stop button is disabled AFTER playback attempt ends
+            self.set_stop_button_state(enabled=False) # Schedule disable
+
+        return natural_finish
+
+    def _play_audio_blocking(self, audio_path_str: str, status_playing: str = "Playing audio...") -> bool:
+        """
+        Loads and plays an audio file blockingly, managing the Stop button.
+        Returns True if playback completed naturally, False otherwise (stopped or error).
+        """
+        if not audio_path_str or not self.player.initialized:
+            return False
+
+        natural_finish = False
+        try:
+            self.update_status("Loading audio...") # Direct update ok here? No, schedule.
+            self.after(0, lambda: self.update_status("Loading audio..."))
+            if not self.player.load(audio_path_str):
+                raise RuntimeError(f"Failed to load audio file: {audio_path_str}")
+
+            print(f"Playing: {audio_path_str}")
+            self.is_playing = True
+            self.set_stop_button_state(enabled=True) # Schedule enable
+            self.update_status(status_playing)      # Schedule update
+
+            self.player.play()
+
+            # Wait for playback to finish or be stopped
+            while self.player.is_busy() and self.is_playing:
+                time.sleep(0.1)
+
+            # --- Playback finished or stopped ---
+            if self.is_playing: # Finished naturally if flag wasn't cleared by stop_playback
+                print("Playback finished naturally.")
+                self.update_status("Playback finished.") # Schedule update
+                self.is_playing = False # Clear flag *after* checking
+                natural_finish = True
+            # If stopped by user, is_playing is already False, status set in stop_playback
+
+        except Exception as e:
+            error_msg = f"Error during playback: {e}"
+            print(error_msg)
+            self.update_status(error_msg) # Schedule update
+            self.is_playing = False
+        finally:
+            # Ensure mixer is stopped and unloaded
+            self.player.stop()
+            self.player.unload()
+            # Ensure stop button is disabled AFTER playback attempt ends
+            self.set_stop_button_state(enabled=False) # Schedule disable
+
+        return natural_finish
+    
+    def toggle_speak_input(self):
+        """Updates the speak input enabled state based on the checkbox."""
+        checkbox_value = self.speak_input_checkbox.get() # 1 if checked, 0 if not
+        self.speak_input_enabled = bool(checkbox_value)
+        status = "enabled" if self.speak_input_enabled else "disabled"
+        print(f"Speak Input is now {status}")
+        # Optional: Update status bar if desired
+        # self.update_status(f"Speak Input {status}")
+    
     # --- Closing Method ---
     def on_closing(self):
         """Handles window closing event."""
