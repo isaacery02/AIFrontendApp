@@ -16,31 +16,36 @@ from audio_player import AudioPlayer
 from history_manager import load_history, save_history
 from file_utils import cleanup_old_recordings
 import file_utils
+import theme_manager
 
 class ChatApp(customtkinter.CTk):
-    def __init__(self, player: AudioPlayer): # Pass player instance
+    def __init__(self, player: AudioPlayer):
         super().__init__()
 
         self.player = player
         self.title("AI Chat & Speech")
-        self.geometry("850x550") # Adjust size as needed
+        self.geometry("850x550")
 
         customtkinter.set_appearance_mode("System")
         customtkinter.set_default_color_theme("blue")
 
-        # --- Configure main window's grid for the PanedWindow ---
+        # --- Add instance var for settings window ---
+        self.settings_window = None
+        # --- Add instance var for storing loaded API key for display ---
+        self.current_api_key_display = "" # Store loaded key for settings display
+
+        # Configure main window grid (Unchanged)
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        # --- Create the PanedWindow ---
+        # Create PanedWindow (Unchanged)
         self.paned_window = tk.PanedWindow(
             self, orient=tk.HORIZONTAL, sashrelief=tk.RAISED,
             sashwidth=6, bg="gray25"
         )
         self.paned_window.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
-        # --- Pane 1: History Section ---
-        # Using intermediate tk.Frame container
+        # Pane 1: History Section (Unchanged)
         self.history_container = tk.Frame(self.paned_window)
         self.history_frame = customtkinter.CTkScrollableFrame(
             self.history_container, label_text="History", width=180
@@ -49,8 +54,7 @@ class ChatApp(customtkinter.CTk):
         self.history_frame.pack(fill="both", expand=True)
         self.paned_window.add(self.history_container, stretch="never")
 
-        # --- Pane 2: Main Content Area ---
-        # Using intermediate tk.Frame container
+        # Pane 2: Main Content Area (Unchanged)
         self.main_content_container = tk.Frame(self.paned_window)
         self.main_content_frame = customtkinter.CTkFrame(
             self.main_content_container, fg_color="transparent"
@@ -58,80 +62,326 @@ class ChatApp(customtkinter.CTk):
         self.main_content_frame.pack(fill="both", expand=True)
         self.paned_window.add(self.main_content_container, stretch="always")
 
-        # --- Configure Grid Layout *INSIDE* main_content_frame ---
-        self.main_content_frame.grid_columnconfigure(0, weight=1) # Single column
-        # Remove row 0 config for checkbox - rows are now: 0=Input, 1=Output, 2=ButtonFrame, 3=Status
-        # self.main_content_frame.grid_rowconfigure(0, weight=0) # Speak Input Checkbox row <--- REMOVE
-        self.main_content_frame.grid_rowconfigure(0, weight=1) # Input row weight (was 1)
-        self.main_content_frame.grid_rowconfigure(1, weight=3) # Output row weight (was 2, larger)
-        self.main_content_frame.grid_rowconfigure(2, weight=0) # Button frame row weight (was 3)
-        self.main_content_frame.grid_rowconfigure(3, weight=0) # Status label row weight (was 4)
+        # Configure Grid Layout INSIDE main_content_frame (Unchanged)
+        self.main_content_frame.grid_columnconfigure(0, weight=1)
+        self.main_content_frame.grid_rowconfigure(0, weight=1) # Input
+        self.main_content_frame.grid_rowconfigure(1, weight=3) # Output
+        self.main_content_frame.grid_rowconfigure(2, weight=0) # Button Frame
+        self.main_content_frame.grid_rowconfigure(3, weight=0) # Status
 
-        # Input Textbox (Back to row 0)
+        # Widgets INSIDE main_content_frame (Unchanged: Input, Output)
         self.input_textbox = customtkinter.CTkTextbox(self.main_content_frame, height=100)
         self.input_textbox.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="nsew")
         self.input_textbox.insert("0.0", "Enter your text here...")
         self.input_textbox.bind("<Control-Return>", self.handle_ctrl_enter)
 
-        # Output Textbox (Back to row 1)
         self.output_textbox = customtkinter.CTkTextbox(self.main_content_frame, state="disabled")
         self.output_textbox.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
 
-        # Button Frame (Parent is main_content_frame)
+            # Button Frame (Parent is main_content_frame)
         self.button_frame = customtkinter.CTkFrame(self.main_content_frame, fg_color="transparent")
-        self.button_frame.grid(row=2, column=0, padx=10, pady=(5,0), sticky="ew")
-        # Configure 2 columns, 3 rows (Gen/Stop, PlayHist/Empty, Checkboxes)
+        self.button_frame.grid(row=2, column=0, padx=10, pady=(5,0), sticky="ew") # Row 2 in main_content_frame
+
+        # Configure 2 columns, 3 rows needed now
         self.button_frame.grid_columnconfigure(0, weight=1)
         self.button_frame.grid_columnconfigure(1, weight=1)
-        self.button_frame.grid_rowconfigure(0, weight=0) # Gen/Stop Buttons
-        self.button_frame.grid_rowconfigure(1, weight=0) # Play History Button
-        self.button_frame.grid_rowconfigure(2, weight=0) # Checkboxes
+        self.button_frame.grid_rowconfigure(0, weight=0) # Row for Gen/Stop Buttons
+        self.button_frame.grid_rowconfigure(1, weight=0) # Row for Play History/Settings Buttons
+        self.button_frame.grid_rowconfigure(2, weight=0) # Row for Checkboxes
+        # Removed configure for row 3
 
-        # Generate / Stop Buttons (Row 0)
+        # Generate / Stop Buttons (Row 0 - Unchanged)
         self.submit_button = customtkinter.CTkButton(self.button_frame, text="Generate & Speak", command=self.start_processing_thread)
-        self.submit_button.grid(row=0, column=0, padx=(0,5), pady=(5,2), sticky="ew")
+        self.submit_button.grid(row=0, column=0, padx=(0,5), pady=(2,2), sticky="ew")
         self.stop_button = customtkinter.CTkButton(self.button_frame, text="Stop Playback", command=self.stop_playback, state="disabled", fg_color="firebrick", hover_color="darkred")
-        self.stop_button.grid(row=0, column=1, padx=(5,0), pady=(5,2), sticky="ew")
+        self.stop_button.grid(row=0, column=1, padx=(5,0), pady=(2,2), sticky="ew")
 
-        # --- Add Play History Button (Row 1, Col 0) ---
+        # Play History Button (Row 1, Col 0)
         self.play_history_button = customtkinter.CTkButton(
             self.button_frame,
             text="Play Selected Audio",
             command=self.play_selected_history,
-            state="disabled" # Initially disabled
+            state="disabled"
         )
-        self.play_history_button.grid(row=1, column=0, columnspan=2, padx=5, pady=(2,2), sticky="ew")
-        # ---------------------------------------------
+        # Update Grid: Place in col 0, remove columnspan
+        self.play_history_button.grid(row=1, column=0, padx=(0,5), pady=(2,2), sticky="ew")
 
-        # --- Checkboxes (Row 2) ---
+        # Settings Button (Row 1, Col 1)
+        self.settings_button = customtkinter.CTkButton(
+            self.button_frame,
+            text="Settings",
+            command=self.open_settings_window
+        )
+        # Update Grid: Place in col 1, remove columnspan
+        self.settings_button.grid(row=1, column=1, padx=(5,0), pady=(2,2), sticky="ew")
+
+        # Checkboxes (Row 2)
         self.tts_enabled = True
         self.tts_checkbox = customtkinter.CTkCheckBox(self.button_frame, text="Enable Speech Output", command=self.toggle_tts)
-        self.tts_checkbox.grid(row=2, column=0, padx=(5,10), pady=(2,5), sticky="w") # Row 2, Col 0
+        self.tts_checkbox.grid(row=2, column=0, padx=(5,10), pady=(5,5), sticky="w") # Changed to row 2, added top pady
         self.tts_checkbox.select()
 
         self.speak_input_enabled = False
         self.speak_input_checkbox = customtkinter.CTkCheckBox(self.button_frame, text="Speak My Input", command=self.toggle_speak_input)
-        self.speak_input_checkbox.grid(row=2, column=1, padx=(10,5), pady=(2,5), sticky="w") # Row 2, Col 1
+        self.speak_input_checkbox.grid(row=2, column=1, padx=(10,5), pady=(5,5), sticky="w") # Changed to row 2, added top pady
         self.speak_input_checkbox.deselect()
-        # ----------------------------------------
 
-        # Status Label (Back to row 3 of main_content_frame)
+        # Status Label (Parent main_content_frame - Row index unchanged relative to main frame)
         self.status_label = customtkinter.CTkLabel(self.main_content_frame, text="Status: Ready", anchor="w")
-        self.status_label.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew") # Was row 4
+        self.status_label.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew")
+
+        # Status Label (Parent main_content_frame - Unchanged)
+        self.status_label = customtkinter.CTkLabel(self.main_content_frame, text="Status: Ready", anchor="w")
+        self.status_label.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew")
 
         # --- Setup for processing ---
         self.responses_dir = config.RESPONSES_DIR
         self.max_recordings = config.MAX_RECORDINGS
         self.processing_thread = None
         self.is_playing = False
-        self.history_file = config.HISTORY_FILE
+        self.history_file = config.HISTORY_FILE # Needed for saving history
+        self.user_settings_file = config.APP_BASE_DATA_DIR / "user_settings.json" # Define settings file path
 
-        # --- Load History & Update Display ---
-        self.load_history()
+        # --- Load Persistent Data ---
+        # Load user settings (this now just determines the mode, doesn't apply it yet)
+        self.load_user_settings()
+        # Load history uses history_manager function directly
+        self.history = load_history(self.history_file)
         self.update_history_display()
+
+        # --- Apply Initial Theme ---
+        # Apply the theme AFTER all widgets are initialized
+        theme_manager.apply_theme(self, self.current_appearance_mode)
 
         # --- Set closing protocol ---
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def load_user_settings(self):
+        """Loads settings from JSON and sets API key env var. Determines startup theme."""
+        self.current_api_key_display = ""
+        loaded_mode = "System" # Default appearance mode
+        key_loaded_from_settings = False
+        settings_file_path = config.APP_BASE_DATA_DIR / "user_settings.json"
+
+        if settings_file_path.exists():
+            print(f"DEBUG: Found settings file: {settings_file_path}")
+            try:
+                with open(settings_file_path, "r", encoding="utf-8") as f:
+                    settings_data = json.load(f)
+                print(f"DEBUG: Loaded settings data: {settings_data}")
+
+                # Load API Key
+                loaded_key = settings_data.get("openai_api_key")
+                if loaded_key and isinstance(loaded_key, str) and loaded_key.startswith("sk-"):
+                    os.environ['OPENAI_API_KEY'] = loaded_key
+                    self.current_api_key_display = loaded_key
+                    key_loaded_from_settings = True
+                    print("DEBUG: Loaded API key from user_settings.json and set os.environ.")
+                elif "openai_api_key" in settings_data:
+                     print("DEBUG: Found 'openai_api_key' in settings but it's invalid or empty.")
+
+                # Load Appearance Mode setting name
+                loaded_mode_setting = settings_data.get("appearance_mode")
+                if loaded_mode_setting in ["Light", "Dark", "System"]:
+                    loaded_mode = loaded_mode_setting # Use saved setting name
+                    print(f"DEBUG: Loaded appearance mode preference: '{loaded_mode}'")
+                else:
+                    print("DEBUG: Appearance mode setting not found/invalid, will use default 'System'.")
+
+            except (json.JSONDecodeError, IOError) as e:
+                print(f"Error loading user settings file {settings_file_path}: {e}")
+                loaded_mode = "System" # Default on error
+            except Exception as e:
+                print(f"Unexpected error loading user settings: {e}")
+                loaded_mode = "System" # Default on error
+        else:
+            print(f"DEBUG: Settings file not found: {settings_file_path}")
+
+        # Fallback API Key Check
+        if not key_loaded_from_settings:
+             env_key = os.getenv('OPENAI_API_KEY')
+             if env_key:
+                  print("DEBUG: Using API key found in environment variable or .env file.")
+                  self.current_api_key_display = env_key
+             else:
+                  print("WARN: OpenAI API key not found anywhere.")
+                  self.current_api_key_display = ""
+
+        # Store the determined mode - theme application happens at end of __init__
+        self.current_appearance_mode = loaded_mode
+        print(f"DEBUG: Startup mode determined as: {self.current_appearance_mode}")
+
+    def open_settings_window(self):
+        """Opens the settings window or focuses it if already open."""
+        if self.settings_window is not None and self.settings_window.winfo_exists():
+            self.settings_window.focus()
+            return
+
+        self.settings_window = customtkinter.CTkToplevel(self)
+        self.settings_window.title("Settings")
+        self.settings_window.geometry("500x300") # Increased height for new controls
+        self.settings_window.resizable(False, False)
+        self.settings_window.transient(self)
+        self.settings_window.grab_set()
+
+        # Configure grid
+        self.settings_window.grid_columnconfigure(1, weight=1)
+        # Add row configs
+        self.settings_window.grid_rowconfigure(0, weight=0) # API Key
+        self.settings_window.grid_rowconfigure(1, weight=0) # Status Label
+        self.settings_window.grid_rowconfigure(2, weight=0) # Appearance Label
+        self.settings_window.grid_rowconfigure(3, weight=0) # Appearance Radio Buttons
+        self.settings_window.grid_rowconfigure(4, weight=0) # Save/Close Buttons
+
+        # --- API Key Section ---
+        api_key_label = customtkinter.CTkLabel(self.settings_window, text="OpenAI API Key:")
+        api_key_label.grid(row=0, column=0, padx=(20, 5), pady=(20, 5), sticky="w")
+        self.settings_api_key_entry = customtkinter.CTkEntry(self.settings_window, width=350, show="*") # Store as instance var
+        self.settings_api_key_entry.grid(row=0, column=1, padx=(0, 20), pady=(20, 5), sticky="ew")
+        self.settings_api_key_entry.insert(0, self.current_api_key_display or "")
+
+        # --- Status Label for Settings ---
+        self.settings_status_label = customtkinter.CTkLabel(self.settings_window, text="", anchor="w") # Store as instance var
+        self.settings_status_label.grid(row=1, column=0, columnspan=2, padx=20, pady=(0, 10), sticky="ew")
+
+        # --- Appearance Mode Section ---
+        appearance_label = customtkinter.CTkLabel(self.settings_window, text="Appearance Mode:")
+        appearance_label.grid(row=2, column=0, columnspan=2, padx=20, pady=(10, 0), sticky="w")
+
+        # Variable to hold the selected radio button state
+        # Ensure self.current_appearance_mode is loaded before this window opens
+        self.appearance_mode_var = customtkinter.StringVar(value=self.current_appearance_mode)
+
+        # Frame to hold radio buttons horizontally
+        radio_frame = customtkinter.CTkFrame(self.settings_window, fg_color="transparent")
+        # Grid the frame into the settings window
+        radio_frame.grid(row=3, column=0, columnspan=2, padx=15, pady=0, sticky="w")
+
+        # Create radio buttons WITH radio_frame as the master directly
+        radio_light = customtkinter.CTkRadioButton(
+            master=radio_frame,
+            text="Light", variable=self.appearance_mode_var,
+            value="Light", command=self.change_appearance_mode
+        )
+        radio_light.grid(row=0, column=0, padx=5, pady=5, sticky="w") # Grid within radio_frame
+
+        radio_dark = customtkinter.CTkRadioButton(
+            master=radio_frame,
+            text="Dark", variable=self.appearance_mode_var,
+            value="Dark", command=self.change_appearance_mode
+        )
+        radio_dark.grid(row=0, column=1, padx=5, pady=5, sticky="w") # Grid within radio_frame
+
+        radio_system = customtkinter.CTkRadioButton(
+            master=radio_frame,
+            text="System", variable=self.appearance_mode_var,
+            value="System", command=self.change_appearance_mode
+        )
+        radio_system.grid(row=0, column=2, padx=5, pady=5, sticky="w") # Grid within radio_frame
+
+        # --- Save/Close Buttons ---
+        save_button = customtkinter.CTkButton(
+            self.settings_window, text="Save Settings",
+            command=self.save_settings # Command now saves both API key and appearance
+        )
+        save_button.grid(row=4, column=0, padx=(20, 5), pady=(20, 20), sticky="ew")
+
+        close_button = customtkinter.CTkButton(
+            self.settings_window, text="Close",
+            command=self.on_settings_close # Use handler to reset variable
+        )
+        close_button.grid(row=4, column=1, padx=(5, 20), pady=(20, 20), sticky="ew")
+
+        self.settings_window.protocol("WM_DELETE_WINDOW", self.on_settings_close)
+
+    def on_settings_close(self):
+        """Callback for when the settings window is closed."""
+        if self.settings_window is not None and self.settings_window.winfo_exists():
+            self.settings_window.grab_release()
+            self.settings_window.destroy()
+        self.settings_window = None # Reset variable
+        # Clean up variables associated with the settings window if needed
+        if hasattr(self, 'appearance_mode_var'):
+             del self.appearance_mode_var
+        if hasattr(self, 'settings_api_key_entry'):
+             del self.settings_api_key_entry
+        if hasattr(self, 'settings_status_label'):
+             del self.settings_status_label
+
+    def save_settings(self):
+        """Saves the API key and appearance mode from the settings window."""
+        # ... (logic to get API key from self.settings_api_key_entry) ...
+        new_key = self.settings_api_key_entry.get().strip()
+        key_warning = ""
+        if not new_key:
+             new_key = None
+        elif not new_key.startswith("sk-"):
+             key_warning = "Warning: Key might be invalid. "
+
+        # Get the *currently applied* mode
+        selected_mode = self.current_appearance_mode
+
+        settings_data = {}
+        if new_key:
+             settings_data["openai_api_key"] = new_key
+        settings_data["appearance_mode"] = selected_mode # Save the mode
+
+        try:
+            # ... (logic to save settings_data to self.user_settings_file) ...
+             settings_file_path = config.APP_BASE_DATA_DIR / "user_settings.json" # Use config path
+             settings_file_path.parent.mkdir(parents=True, exist_ok=True)
+             with open(settings_file_path, "w", encoding="utf-8") as f:
+                 json.dump(settings_data, f, indent=4)
+
+             if new_key:
+                 os.environ['OPENAI_API_KEY'] = new_key
+                 self.current_api_key_display = new_key
+                 print("Saved new API key to user_settings.json and updated environment variable.")
+             else:
+                 print("API key cleared in user_settings.json.")
+                 self.current_api_key_display = os.getenv('OPENAI_API_KEY', '')
+
+             print(f"Saved appearance mode '{selected_mode}' to user_settings.json.")
+             self.settings_status_label.configure(text=key_warning + "Settings Saved!", text_color="green")
+
+        except Exception as e:
+            print(f"Error saving user settings: {e}")
+            self.settings_status_label.configure(text=f"Error saving settings: {e}", text_color="red")
+
+
+    def on_settings_close(self):
+        """Callback for when the settings window is closed."""
+        if self.settings_window is not None and self.settings_window.winfo_exists():
+            self.settings_window.grab_release() # Release grab
+            self.settings_window.destroy()
+        self.settings_window = None # Reset variable
+
+    def change_appearance_mode(self):
+        """Updates the stored mode and applies the theme using theme_manager."""
+        new_mode = self.appearance_mode_var.get()
+        print(f"DEBUG: Appearance mode radio button changed to: {new_mode}")
+
+        if new_mode in ["Light", "Dark", "System"]:
+            # Store the new mode preference
+            self.current_appearance_mode = new_mode
+            # Apply the theme using the external manager
+            theme_manager.apply_theme(self, new_mode)
+        else:
+             print(f"Error: Invalid appearance mode selected in UI: {new_mode}")
+
+    # --- Ensure on_closing method exists from previous steps ---
+    def on_closing(self):
+        """Handles main window closing event."""
+        print("Closing application...")
+        # Stop playback if active
+        if self.is_playing:
+             self.player.stop()
+        # Save history
+        save_history(self.history_file, self.history) # Use manager
+        # Quit player
+        self.player.quit() # Use player method
+        # Destroy window
+        self.destroy()
 
     # --- Make sure load_history method exists or was replaced by direct call ---
     def load_history(self): # Example if you have this wrapper method
