@@ -31,25 +31,26 @@ def get_chat_response(client: OpenAI, prompt: str, model: str) -> str:
         raise RuntimeError(f"Unexpected error getting chat response: {e}") from e
 
 def generate_speech(client: OpenAI, text: str, output_path: Path,
-                    model: str = config.DEFAULT_TTS_MODEL, # Use config default
-                    voice: str = config.DEFAULT_TTS_VOICE): # Use config default
+                    model: str = config.DEFAULT_TTS_MODEL,
+                    voice: str = config.DEFAULT_TTS_VOICE,
+                    speed: float = config.DEFAULT_TTS_SPEED): # <-- Add speed parameter with default
     """Generates speech using OpenAI TTS and saves to output_path."""
     try:
-        # ... (rest of the function is unchanged) ...
         output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        print(f"DEBUG: Generating speech with model={model}, voice={voice}, speed={speed}") # Log speed
         tts_response = client.audio.speech.create(
             model=model,
-            voice=voice, # Use the passed voice parameter
-            input=text
+            voice=voice,
+            input=text,
+            speed=speed # <-- Pass speed parameter to API
         )
         tts_response.stream_to_file(output_path)
         print(f"Audio successfully saved to: {output_path}")
-    except OpenAIError as e:
-        print(f"OpenAI API error (TTS): {e}")
-        raise ConnectionError(f"Failed to generate speech: {e}") from e
-    except Exception as e:
-        print(f"Unexpected error in generate_speech: {e}")
-        raise RuntimeError(f"Unexpected error generating speech: {e}") from e
+    # ... (exception handling remains the same) ...
+    except OpenAIError as e: print(f"OpenAI API error (TTS): {e}"); raise ConnectionError(f"Failed to generate speech: {e}") from e
+    except Exception as e: print(f"Unexpected error in generate_speech: {e}"); raise RuntimeError(f"Unexpected error generating speech: {e}") from e
+
 
 # --- Function to get available chat models ---
 def get_available_chat_models(client: OpenAI) -> List[str]:

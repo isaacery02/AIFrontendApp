@@ -37,6 +37,7 @@ MAX_RECORDINGS = 50
 DEFAULT_CHAT_MODEL = os.getenv("DEFAULT_CHAT_MODEL", "gpt-4o")
 DEFAULT_TTS_MODEL = "tts-1"
 DEFAULT_TTS_VOICE = "alloy"
+DEFAULT_TTS_SPEED = 1.0
 
 # --- Ensure Directories Exist ---
 try:
