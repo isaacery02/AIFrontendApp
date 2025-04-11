@@ -16,9 +16,11 @@ settings.txt
 
 # Responses
 data/
+data/user_settings.json
 
 # dist
 dist/
 
 # build
 build/
+data/user_settings.json
