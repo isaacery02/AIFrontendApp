@@ -53,7 +53,7 @@ chat_to_speech_project/├── .venv/                  # Python Virtual Enviro
     * Git installed.
 2.  **Clone Repository:**
     ```bash
-    git clone <your-repository-url>
+    git clone https://github.com/isaacery02/AIFrontendApp.git
     cd chat_to_speech_project
     ```
 3.  **Create Virtual Environment:**
