@@ -16,6 +16,7 @@ settings.txt
 
 # Responses
 responses/
+user_settings.json
 
 # dist
 dist/
