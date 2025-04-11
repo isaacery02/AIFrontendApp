@@ -2,6 +2,7 @@
 from openai import OpenAI, OpenAIError
 from pathlib import Path
 from typing import List # Make sure List is imported for type hinting
+import config
 
 # Default list in case API call fails or returns unexpected results
 # You can customize this list with models you know work well
@@ -29,15 +30,16 @@ def get_chat_response(client: OpenAI, prompt: str, model: str) -> str:
         print(f"Unexpected error in get_chat_response: {e}")
         raise RuntimeError(f"Unexpected error getting chat response: {e}") from e
 
-def generate_speech(client: OpenAI, text: str, output_path: Path, model: str, voice: str):
+def generate_speech(client: OpenAI, text: str, output_path: Path,
+                    model: str = config.DEFAULT_TTS_MODEL, # Use config default
+                    voice: str = config.DEFAULT_TTS_VOICE): # Use config default
     """Generates speech using OpenAI TTS and saves to output_path."""
     try:
-        # Ensure parent directory exists (though typically handled before calling)
+        # ... (rest of the function is unchanged) ...
         output_path.parent.mkdir(parents=True, exist_ok=True)
-
         tts_response = client.audio.speech.create(
             model=model,
-            voice=voice,
+            voice=voice, # Use the passed voice parameter
             input=text
         )
         tts_response.stream_to_file(output_path)

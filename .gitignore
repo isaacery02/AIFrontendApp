@@ -16,11 +16,13 @@ settings.txt
 
 # Responses
 data/
+data/responses/
 data/user_settings.json
+data/chat_history.json
 
 # dist
 dist/
 
 # build
 build/
-data/user_settings.json
+
