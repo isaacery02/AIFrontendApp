@@ -1,0 +1,18 @@
+# Virtual environment
+.venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Secrets file
+.env
+
+# Output audio files (optional)
+*.mp3
+*.wav
+
+settings.txt
+
+# Responses
+Responses/
