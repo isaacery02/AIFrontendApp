@@ -15,7 +15,7 @@ __pycache__/
 settings.txt
 
 # Responses
-Responses/
+responses/
 
 # dist
 dist/
